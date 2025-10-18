@@ -1,5 +1,9 @@
 import { ChatKit, useChatKit } from '@openai/chatkit-react';
+import { Routes, Route, Link, Navigate } from 'react-router-dom';
 import './App.css';
+import Login from './pages/Login.jsx';
+import Register from './pages/Register.jsx';
+import { isAuthenticated } from './api';
 
 function MyChat() {
   const { control } = useChatKit({
@@ -35,10 +39,39 @@ function MyChat() {
   );
 }
 
+function RequireAuth({ children }) {
+  if (!isAuthenticated()) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+}
+
 function App() {
   return (
-    <div>
-      <MyChat />
+    <div style={{ padding: 16 }}>
+      <nav style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+        <Link to="/login">Login</Link>
+        <Link to="/register">Registro</Link>
+        <Link to="/chat">Chat</Link>
+      </nav>
+
+      <Routes>
+        <Route
+          path="/"
+          element={isAuthenticated() ? <Navigate to="/chat" replace /> : <Navigate to="/login" replace />}
+        />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route
+          path="/chat"
+          element={
+            <RequireAuth>
+              <MyChat />
+            </RequireAuth>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </div>
   );
 }

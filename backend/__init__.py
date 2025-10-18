@@ -1,0 +1,1 @@
+# Make 'backend' a package for relative imports (e.g., from .database import Base)

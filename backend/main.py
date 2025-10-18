@@ -1,34 +1,24 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from openai import OpenAI
+# Compatibility entrypoint for uvicorn backend.main:app
+# Works whether you run from the project root:
+#   uvicorn backend.main:app --reload
+# or inside the backend folder:
+#   uvicorn main:app --reload
+
 import os
-from dotenv import load_dotenv
+import sys
 
-load_dotenv()
+# Ensure project root is on sys.path so 'backend' is importable whether launched
+# from the project root or from the backend/ directory (including Uvicorn reloader).
+_CURRENT_DIR = os.path.dirname(__file__)
+_PROJECT_ROOT = os.path.abspath(os.path.join(_CURRENT_DIR, ".."))
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
 
-app = FastAPI()
-
-# Configurar CORS
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_credentials=False,
-    allow_methods=["POST", "OPTIONS"],
-    allow_headers=["Content-Type", "Authorization"],
-)
-
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-class SessionRequest(BaseModel):
-    workflow_id: str
-    user_id: str
-
-@app.post("/api/chatkit/session")
-def create_chatkit_session(req: SessionRequest):
-    session = client.beta.chatkit.sessions.create(
-        workflow={"id": req.workflow_id},
-        user=req.user_id
-    )
-    return {"client_secret": session.client_secret}
+try:
+    # Prefer absolute import when project root is on sys.path
+    from backend.app.main import app as _app  # type: ignore
+    app = _app  # noqa: F401
+except ModuleNotFoundError:
+    # Fallback to local package when running strictly inside backend/
+    from app.main import app as _app  # type: ignore
+    app = _app  # noqa: F401
