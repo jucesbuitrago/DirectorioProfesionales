@@ -1,0 +1,32 @@
+{
+  "name": "directorio-profesionales",
+  "version": "1.0.0",
+  "description": "Aplicación full-stack para directorio de profesionales con IA",
+  "scripts": {
+    "install-frontend": "cd frontend && npm install",
+    "install-backend": "cd backend && pip install -r requirements.txt",
+    "install": "npm run install-frontend && npm run install-backend",
+    "build-frontend": "cd frontend && npm run build",
+    "build": "npm run build-frontend",
+    "start-backend": "cd backend && uvicorn main:app --reload",
+    "start": "npm run start-backend",
+    "dev-frontend": "cd frontend && npm run dev",
+    "dev": "npm run dev-frontend",
+    "lint-frontend": "cd frontend && npm run lint",
+    "lint": "npm run lint-frontend"
+  },
+  "workspaces": [
+    "frontend"
+  ],
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "."
+  },
+  "author": "",
+  "license": "ISC"
+}
