@@ -55,12 +55,20 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
+    # 1) Toma la URL desde env o desde el INI (que ya fue seteado por get_settings())
+    db_url = os.getenv("DATABASE_URL") or config.get_main_option("sqlalchemy.url")
+    if not db_url:
+        raise RuntimeError("sqlalchemy.url / DATABASE_URL is not set")
+
+    # 2) Toma la sección principal del INI y fuerza la URL correcta
+    cfg_section = config.get_section(config.config_ini_section) or {}
+    cfg_section["sqlalchemy.url"] = db_url
+
+    # 3) ¡Clave!: filtra solo claves que empiecen por "sqlalchemy."
     connectable = engine_from_config(
-        config.get_section(config.config_ini_section) or {},
-        prefix="",
-        url=config.get_main_option("sqlalchemy.url"),
+        cfg_section,
+        prefix="sqlalchemy.",   # <-- evita pasar 'script_location', 'here', etc.
         poolclass=pool.NullPool,
-        future=True,
     )
 
     with connectable.connect() as connection:
@@ -70,10 +78,8 @@ def run_migrations_online() -> None:
             compare_type=True,
             compare_server_default=True,
         )
-
         with context.begin_transaction():
             context.run_migrations()
-
 
 if context.is_offline_mode():
     run_migrations_offline()
